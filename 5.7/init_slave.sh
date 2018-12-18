@@ -1,17 +1,17 @@
 #!/bin/bash
 
+echo '[init_slave] - Setting up replication'
+
 # health check
-until mysql -h${REPLICATION_MASTER_HOST} -uroot -e "select 1 from dual" | grep -q 1;
+until mysql -h${REPLICATION_MASTER_HOST} --user=root --password=$MYSQL_ROOT_PASSWORD -e "select 1 from dual" | grep -q 1;
 do
     >&2 echo "Replication master is unavailable - sleeping"
     sleep 1
 done
 >&2 echo "Replication master is up - setting slave"
 
-REPLICATION_MASTER_PORT=${REPLICATION_MASTER_PORT:-3306}
-
 # set basic master info
-mysql -uroot -e "RESET MASTER; \
+mysql --user=root --password=$MYSQL_ROOT_PASSWORD -e "RESET MASTER; \
     CHANGE MASTER TO \
     MASTER_HOST='$REPLICATION_MASTER_HOST', \
     MASTER_PORT=$REPLICATION_MASTER_PORT, \
@@ -23,13 +23,16 @@ mysqldump \
     --host=$REPLICATION_MASTER_HOST \
     --port=$REPLICATION_MASTER_PORT \
     --user=root \
+    --password=$MYSQL_ROOT_PASSWORD \
     --protocol=tcp \
     --master-data=1 \
     --add-drop-database \
     --flush-logs \
     --flush-privileges \
     --all-databases \
-    | mysql -uroot
+    | mysql --user=root --password=$MYSQL_ROOT_PASSWORD
 
 # start slave
-mysql -uroot -e "START SLAVE;"
+mysql --user=root --password=$MYSQL_ROOT_PASSWORD -e "START SLAVE;"
+
+echo '[init_slave] - Setup done'

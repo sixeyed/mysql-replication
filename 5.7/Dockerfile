@@ -1,17 +1,18 @@
 FROM mysql/mysql-server:5.7
-MAINTAINER Robin Wang<micrari@gmail.com>
 
-ENV SERVER_ID=1
-ENV REPLICATION_USER=repl
-ENV REPLICATION_PASSWORD=test
-ENV REPLICATION_MASTER_HOST=
+ENV SERVER_ID="1" \
+    REPLICATION_USER="repl" \
+    REPLICATION_PASSWORD="test" \
+    REPLICATION_MASTER_HOST="" \
+    REPLICATION_MASTER_PORT="3306"
 
-COPY replication-entrypoint.sh \
-     master.cnf \
-     init_master.sh \
-     slave.cnf \
-     init_slave.sh \
+COPY *.cnf \
+     init_*.sh \
      /
 
-ENTRYPOINT ["sh", "/replication-entrypoint.sh"]
-CMD ["mysqld"]
+COPY docker-entrypoint.sh /entrypoint.sh
+COPY setup-replication.sh /docker-entrypoint-initdb.d/
+
+RUN chmod +x /entrypoint.sh \
+             /docker-entrypoint-initdb.d/setup-replication.sh \
+             /init_master.sh /init_slave.sh

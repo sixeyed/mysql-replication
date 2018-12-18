@@ -1,7 +1,9 @@
 #!/bin/bash
 
+echo '[init_master] - Setting up replication user'
+
 # create user for replication
-mysql -uroot -e "GRANT \
+mysql --user=root --password=$MYSQL_ROOT_PASSWORD -e "GRANT \
     REPLICATION SLAVE, \
     REPLICATION CLIENT \
     ON *.* \
@@ -9,3 +11,4 @@ mysql -uroot -e "GRANT \
     IDENTIFIED BY '$REPLICATION_PASSWORD'; \
     FLUSH PRIVILEGES;"
 
+echo '[init_master] - Setup done'
